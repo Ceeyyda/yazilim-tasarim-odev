@@ -36,3 +36,5 @@ amacıyla ve bu örüntülerin kodun sürdürülebilirliğine olan doğrudan etk
 
 \* `docs/ai-log/`: Yapay zeka ile yapılan mimari tartışmaların ve refleksiyonların aşama aşama tutulan günlükleri.
 
+## 📊 Sistem Mimari Diyagramı
+![Sistem Tasarım Diyagramı](design-diagram.png)
