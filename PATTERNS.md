@@ -6,9 +6,7 @@
 * **Ne Kazandırdı:** Yeni bir bildirim türü eklendiğinde istemci kodu veya diğer bildirim sınıfları bundan etkilenmeyecek. Kod esneklik kazandı.
 
 ## 2. Adapter Pattern (Yapısal Örüntü)
-* **Nerede Kullanıldı:** `src/main.py` içerisine eklenen `YurtIciSmsAdapter` sınıfında kullanıldı.
-* **Neden Seçildi:** Sisteme sonradan dahil olan uyumsuz ve değiştirilemez `YurtIciSmsProvider` kütüphanesini, mevcut `Notification` arayüzümüze entegre etmek için seçildi.
-* **Ne Kazandırdı:** Açık/Kapalı prensibine (OCP) sadık kalındı; fabrikadaki tek bir satır hariç hiçbir çalışan eski koda dokunulmadan sisteme yeni ve güçlü bir yapı kazandırıldı.
+Projeyi geliştirirken Faz 2 aşamasında en çok zorlandığım yer, dışarıdan aldığımız YurtIciSmsProvider kütüphanesinin parametre yapısı oldu. Bizim sistemimiz send(to, message...) şeklinde standart bir yapıda çalışırken, bu hazır kütüphane gonder_sms_mesaji(tel_no, metin_icerigi) gibi tamamen Türkçe ve farklı sırada parametreler istiyordu. Eğer Adapter Pattern kullanmasaydım, ana fabrikadaki tüm if-else yapılarını ve istemci kodlarını bu kütüphaneye göre baştan aşağı değiştirmem gerekecekti. Yazdığım YurtIciSmsAdapter sınıfı sayesinde, dış kütüphaneyi adeta bir yapboz parçası gibi sisteme uydurdum. Bu bana yazılımda 'Açık/Kapalı Prensibi'nin (OCP) ne kadar hayat kurtarıcı olduğunu bizzat deneyimletti.
 
 ## 3. Observer Pattern (Davranışsal Örüntü)
 * **Nerede Kullanıldı:** `src/main.py` içerisindeki `UserRegistry` (Subject) ve `Notification` (Observer) yapılarında kullanıldı.

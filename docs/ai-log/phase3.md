@@ -1,10 +1,1 @@
-\# Faz 3 - AI Log Raporu
-
-
-
-\* \*\*AI'a ne soruldu (Prompt):\*\* "Sisteme yeni bir kullanıcı kaydolduğunda birden fazla bildirim servisinin (Email, SMS) otomatik ve gevşek bağımlı (loose coupling) şekilde tetiklenmesi için hangi Behavioral örüntü uygundur?"
-
-\* \*\*AI ne yanıtladı (Özet):\*\* AI, bu tür olay-güdümlü (event-driven) mimariler için en ideal yapının 'Observer Pattern' olduğunu belirtti. Kayıt sınıfının 'Subject', bildirim sınıflarının ise 'Observer' rolünü üstlenmesini önerdi.
-
-\* \*\*Ben ne uyguladım:\*\* `UserRegistry` sınıfını Subject, `Notification` arayüzünü Observer yapacak şekilde kodu güncelledim. Sistem tek bir `register\_user` çağrısıyla tüm dinleyicileri dinamik olarak tetikler hale geldi.
-
+Yapay zeka bu aşamada bana kullanıcı kayıt işlemlerini doğrudan bildirim sınıflarının içine gömmeyi (tight coupling) önerdi. Ancak bir yazılım mühendisliği öğrencisi olarak, bu yaklaşımın Single Responsibility (Tek Sorumluluk) ilkesine aykırı olduğunu fark ettim. Kullanıcı kayıt sınıfı sadece kayıt yapmalı, bildirim gönderme detaylarını bilmemeliydi. Bu yüzden AI'ın ilk yönlendirmesini reddederek sistemi UserRegistry (Subject) ve Notification (Observer) olarak iki gevşek bağlı kutba ayırdım. Böylece yarın bir gün sisteme Telegram bildirimi gelse bile kayıt koduna dokunmayacağız.
