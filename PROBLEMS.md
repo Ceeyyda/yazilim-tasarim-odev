@@ -1,64 +1,26 @@
-\# Faz 0: Başlangıç Kodu Tasarım Analiz Raporu
+Kodu incelediğimde gördüğüm birkaç tane sorun var fakat GEMİNİ ile paylaştığımda benden çok daha fazla sorun gördü. Açıkçası buna fazlasıyla şaşırdım çünkü göremediğim ama çözülmesi gereken bu  kadar sorunun farkında değildim. GEMİNİ' ya sorduğumda
+Kodun Tasarım Sorunları:
 
+Faz 0: Mevcut Sistem Mimari Analizi ve Tasarım Sorunları
+Projenin başlangıç (Faz 0) halindeki spagetti kod incelendiğinde, nesne yönelimli programlama (OOP) prensiplerine ve SOLID ilkelerine aykırı çok ciddi mimari hatalar tespit edilmiştir. Bu sorunlar ve bunları çözecek tasarım örüntüleri aşağıda detaylandırılmıştır:
 
+Sorun 1: "God Class" (Tanrı Sınıf) ve Single Responsibility (Tek Sorumluluk) İhlali
+Açıklama: Mevcut sistemde kullanıcı kayıt mantığı, e-posta gönderimi, SMS gönderimi ve push bildirim mekanizmalarının tamamı tek bir sınıfın veya fonksiyonun içine sıkıştırılmıştır. Bir sınıfın değişmesi için birden fazla nedenin olması (örneğin SMS sağlayıcısı değiştiğinde veya yeni bir bildirim türü eklendiğinde aynı kodun düzenlenmesi) Single Responsibility Principle (SRP) ihlalidir.
 
-Bu raporda, `src/main.py` dosyasındaki mevcut bildirim sistemi mimarisinin nesne yönelimli programlama (OOP) ve SOLID prensipleri açısından barındırdığı temel tasarım hataları listelenmiştir.
+Çözüm Örüntüsü: Factory Method ve Observer örüntüleri. Bildirim türleri kendi sınıflarına ayrılmalı ve kayıt mekanizmasından tamamen soyutlanmalıdır.
 
+Sorun 2: Sıkı Bağımlılık (Tight Coupling) ve "Open-Closed" Prensibi İhlali
+Açıklama: Yeni bir bildirim kanalı (örneğin Telegram veya Slack) eklemek istediğimizde, mevcut kodun kalbine gidip yeni if-else veya switch-case blokları eklemek zorunda kalıyoruz. Sistemin genişlemeye açık ancak değişime kapalı olması gerekirken (Open-Closed Principle - OCP), mevcut yapı her yeni istekte kırılmaya müsaittir.
 
+Çözüm Örüntüsü: Factory Method Pattern. Nesne yaratma süreçleri NotificationFactory sınıfına devredilerek istemci kodunun somut sınıflara (EmailNotification, PushNotification) olan bağımlılığı ortadan kaldırılmalıdır.
 
-\## Tespit Edilen Tasarım Sorunları
+Sorun 3: Uyumsuz Arayüzler ve Spagetti Entegrasyon (Uyumsuzluk Sorunu)
+Açıklama: Sisteme dahil etmek istediğimiz üçüncü parti veya eski kütüphaneler (örneğin YurtIciSmsProvider), bizim mevcut sistemimizin fonksiyon isimleri ve parametre yapılarıyla uyuşmamaktadır. Bu kütüphaneleri doğrudan koda gömmek, projenin geri kalanını o kütüphaneye bağımlı hale getirmekte ve kod okunabilirliğini yok etmektedir.
 
+Çözüm Örüntüsü: Adapter Pattern. Uyumsuz olan dış kütüphane arayüzü, sistemimizin beklediği standart arayüze (Notification) adapte edilerek sistem mimarisi korunmalıdır.
 
+Sorun 4: Dağıtık ve Verimsiz Tetikleme Mekanizması (Spaghetti Notification Logic)
+Açıklama: Kullanıcı başarılı bir şekilde kaydolduğunda, sistemin birden fazla yere (hem SMS hem e-posta) aynı anda haber vermesi gerekmektedir. Mevcut kodda bu işlem ardışık fonksiyon çağrılarıyla manuel yapılmaktadır. İleride bildirim almak isteyen yeni yapılar eklendikçe kayıt fonksiyonu şişmeye devam edecektir.
 
-\### 1. Tek Sorumluluk Prensibi (Single Responsibility Principle - SRP) İhlali
-
-\* \*\*Sorun:\*\* `NotificationService` sınıfı hem e-posta, hem SMS, hem de push bildirimlerinin iş mantığını, doğrulama kurallarunı ve bağlantı bilgilerini tek başına barındırmaktadır.
-
-\* \*\*Neden Sorun?:\*\* Sınıfın değişmesi için birden fazla neden vardır; bu durum kodun sürdürülebilirliğini ve okunabilirliğini ciddi şekilde düşürür.
-
-
-
-\### 2. Açık/Kapalı Prensibi (Open/Closed Principle - OCP) İhlali
-
-\* \*\*Sorun:\*\* Yeni bir bildirim türü (örneğin WhatsApp) eklenmek istendiğinde, `send\_notification` metodunun içine yeni `elif` blokları eklenmesi gerekmektedir.
-
-\* \*\*Neden Sorun?:\*\* Mevcut ve çalışan bir koda sürekli müdahale etmek, sistemi genişletmeye kapalı hale getirir ve eski çalışan özellikleri kırma riskini artırır.
-
-
-
-\### 3. Sıkı Bağımlılık (Tight Coupling) ve Esneklik Eksikliği
-
-\* \*\*Sorun:\*\* E-posta, SMS ve push servislerine ait konfigürasyonlar `NotificationService` constructor'ı (`\_\_init\_\_`) içerisinde sabit olarak kodlanmıştır.
-
-\* \*\*Neden Sorun?:\*\* Çalışma zamanında (runtime) farklı bir SMS sağlayıcısına geçiş yapmayı imkansız kılar.
-
-
-
-\### 4. Metot Parametre Enflasyonu (Code Smell)
-
-\* \*\*Sorun:\*\* `send\_notification` metodu; `to`, `phone\_number`, `device\_token` gibi tüm bildirim tiplerine ait parametreleri tek bir imzada toplamak zorunda kalmıştır.
-
-\* \*\*Neden Sorun?:\*\* Kullanıcı SMS göndermek istediğinde e-posta parametrelerini `None` geçmek zorundadır.
-
-
-
-\### 5. Koşullu Mantık Zincirleri (İf-Else Bağımlılığı)
-
-\* \*\*Sorun:\*\* Bildirim türünün ayrımı, metot içerisindeki string tabanlı `if-else` koşul zincirleriyle sağlanmaktadır.
-
-\* \*\*Neden Sorun?:\*\* String ifadeler yazım hatalarına açıktır ve polymorphism (çok biçimlilik) yerine usulsel if-else bloklarına sığınmak nesne felsefesine aykırıdır.
-
-
-
-\---
-
-
-
-\## 🤖 Yapay Zeka (AI) Karşılaştırma Raporu
-
-
-
-\* \*\*AI Tarafından Görülüp Benim Gördüklerimle Eşleşenler:\*\* Nesne yaratma süreçlerinin soyutlanmaması, if-else zincirlerinin esnekliği bozması ve SOLID (SRP/OCP) ilkelerinin ağır ihlali ortak olarak vurgulanmıştır.
-
-\* \*\*Farklar / Ekstra Tespitler:\*\* Yapay zeka, hata yönetiminin (try-except) eksikliğini ek bir mimari zafiyet olarak belirtmiştir. Nesne üretim sorumluluğunun merkezi bir "Creational" örüntüye taşınması gerektiği ortak karardır.
-
+Çözüm Örüntüsü: Observer Pattern. Kullanıcı kayıt sınıfı bir Subject haline getirilerek, bildirim sınıfları (Observers) bu yapıya dinamik olarak abone edilmelidir. Böylece nesneler arası gevşek bağımlılık (Loose Coupling) sağlanır.
+cevaplarını verdi. Ben de tek bir sınıf içinde bütün işlemin yapıldığını ve bunun işlevsel olmadığı fark etmiştim. Bunun yanında if-else zinciri sebebiyle kodun dinamikliğinin bozulduğunu da görmüştüm fakat diğer sorunlar bana yabancı geldi.
